@@ -3,50 +3,37 @@
   <head>
     <meta charset="utf-8" />
 
-    <!-- ✅ 모바일 화면 맞춤(왼쪽 쏠림/확대 문제 방지) -->
+    <!-- 모바일 화면 꽉 차게 (왼쪽 쏠림 해결 핵심) -->
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no"
     />
 
-    <!-- ✅ PWA/앱처럼 보이게 -->
+    <!-- 앱(PWA) 느낌 -->
     <meta name="theme-color" content="#0f172a" />
-    <meta name="application-name" content="931인테리어" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="931인테리어" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-
-    <!-- (선택) 안드로이드 주소창 색상에 영향 -->
     <meta name="mobile-web-app-capable" content="yes" />
 
-    <!-- 기본 설명 -->
-    <meta
-      name="description"
-      content="931인테리어 현장/AS 관리 시스템"
-    />
+    <meta name="description" content="931인테리어 현장 · AS 관리 시스템" />
 
-    <!-- 아이콘 (CRA 기본 경로 유지) -->
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
-
-    <!-- PWA 매니페스트 (CRA 기본) -->
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
 
     <title>931인테리어</title>
 
-    <!-- ✅ iPhone 안전영역(노치) 대비 기본 스타일 -->
     <style>
       html, body {
-        height: 100%;
         margin: 0;
         padding: 0;
-        background: #f1f5f9; /* slate-100 비슷 */
+        height: 100%;
+        background: #f1f5f9;
       }
-      /* iOS에서 터치 시 회색 하이라이트 줄이기 */
       * {
         -webkit-tap-highlight-color: transparent;
       }
-      /* iOS 안전영역 대응 */
       body {
         padding-top: env(safe-area-inset-top);
         padding-bottom: env(safe-area-inset-bottom);
@@ -57,7 +44,7 @@
   </head>
 
   <body>
-    <noscript>이 앱을 사용하려면 JavaScript를 켜주세요.</noscript>
+    <noscript>JavaScript를 활성화해 주세요.</noscript>
     <div id="root"></div>
   </body>
 </html>

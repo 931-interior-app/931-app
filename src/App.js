@@ -1121,7 +1121,7 @@ const App = () => {
   };
 
   return (
-    <div className="<div className="bg-slate-100 min-h-screen font-sans text-slate-900 w-full relative overflow-hidden">
+    <div className="bg-slate-100 min-h-screen font-sans text-slate-900 w-full relative overflow-hidden">
 ">
       <div className="h-2 bg-slate-900 w-full" />
 
