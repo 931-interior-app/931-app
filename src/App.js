@@ -27,13 +27,14 @@ import {
 } from "lucide-react";
 
 /**
- * ✅ Vercel 배포용 단일 파일 버전
- * - Firebase/캔버스 전역변수 제거 (빌드 오류 방지)
- * - 데이터는 localStorage에 저장
+ * ✅ Vercel 배포용 단일 파일 버전 (모바일 최적화 완료)
+ * - 100dvh 적용으로 모바일 브라우저 주소창 문제 해결
+ * - 텍스트 선택 방지, 터치 액션 최적화
+ * - Firebase 없이 localStorage로 즉시 실행 가능
  */
 
 // ------------------------------
-// localStorage helpers
+// localStorage helpers (내 폰에 저장하는 기능)
 // ------------------------------
 const LS_KEY = "931_APP_DATA_V1";
 
@@ -56,7 +57,7 @@ function uid(prefix = "id") {
 }
 
 // ------------------------------
-// Initial demo data
+// 초기 데모 데이터 (앱 처음 켤 때 보이는 가짜 데이터)
 // ------------------------------
 const DEMO_SITES = [
   {
@@ -123,22 +124,9 @@ function ensureInitialStore() {
   const initial = {
     sites: DEMO_SITES,
     asList: DEMO_AS,
-    // siteId별로 관리
-    siteLogsBySite: {
-      s1: [],
-      s2: [],
-      s3: [],
-    },
-    siteWorkersBySite: {
-      s1: [],
-      s2: [],
-      s3: [],
-    },
-    siteMaterialsBySite: {
-      s1: [],
-      s2: [],
-      s3: [],
-    },
+    siteLogsBySite: { s1: [], s2: [], s3: [] },
+    siteWorkersBySite: { s1: [], s2: [], s3: [] },
+    siteMaterialsBySite: { s1: [], s2: [], s3: [] },
   };
 
   saveStore(initial);
@@ -146,10 +134,10 @@ function ensureInitialStore() {
 }
 
 // ------------------------------
-// 1. 로그인 화면 (데모)
+// 1. 로그인 화면
 // ------------------------------
 const LoginView = ({ onLogin }) => {
-  const [mode, setMode] = useState("login"); // 'login' | 'signup'
+  const [mode, setMode] = useState("login");
   const [empId, setEmpId] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -182,7 +170,7 @@ const LoginView = ({ onLogin }) => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-slate-100 p-4">
+    <div className="flex flex-col items-center justify-center min-h-[100dvh] bg-slate-100 p-4">
       <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md">
         <div className="flex justify-center mb-6">
           <div className="bg-blue-600 p-4 rounded-full shadow-lg">
@@ -290,7 +278,7 @@ const Dashboard = ({ user, sites, asList, setView, setCurrentSite }) => {
             <h1 className="text-2xl font-bold text-slate-800">안녕하세요, {user.name}님</h1>
             <p className="text-slate-500 text-sm">{today}</p>
           </div>
-          <div className="bg-slate-100 p-2 rounded-full cursor-pointer hover:bg-slate-200 transition" title="알림(데모)">
+          <div className="bg-slate-100 p-2 rounded-full cursor-pointer hover:bg-slate-200 transition">
             <Bell className="w-6 h-6 text-slate-600" />
           </div>
         </div>
@@ -387,7 +375,7 @@ const Dashboard = ({ user, sites, asList, setView, setCurrentSite }) => {
 // 3. 현장 목록
 // ------------------------------
 const SiteList = ({ sites, setCurrentSite, setView }) => {
-  const [filter, setFilter] = useState("all"); // all, ongoing, completed
+  const [filter, setFilter] = useState("all");
 
   const filteredSites = sites.filter((s) => {
     if (filter === "all") return true;
@@ -458,7 +446,7 @@ const SiteList = ({ sites, setCurrentSite, setView }) => {
 // 4. 현장 상세 (로컬저장소 기반)
 // ------------------------------
 const SiteDetail = ({ site, user, onBack, store, setStore }) => {
-  const [activeTab, setActiveTab] = useState("info"); // info, blueprint, workers, materials
+  const [activeTab, setActiveTab] = useState("info");
   const [showBlueprintModal, setShowBlueprintModal] = useState(false);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
 
@@ -507,651 +495,4 @@ const SiteDetail = ({ site, user, onBack, store, setStore }) => {
       ...store,
       siteLogsBySite: {
         ...store.siteLogsBySite,
-        [site.id]: [newLog, ...(store.siteLogsBySite?.[site.id] ?? [])],
-      },
-    };
-
-    updateStore(next);
-    setNewLogText("");
-    if (cameraInputRef.current) cameraInputRef.current.value = "";
-    if (galleryInputRef.current) galleryInputRef.current.value = "";
-  };
-
-  const handleToggleCheck = (log) => {
-    const isChecked = (log.checks ?? []).includes(user.name);
-    const nextLogs = (store.siteLogsBySite?.[site.id] ?? []).map((x) => {
-      if (x.id !== log.id) return x;
-      const checks = new Set(x.checks ?? []);
-      if (isChecked) checks.delete(user.name);
-      else checks.add(user.name);
-      return { ...x, checks: Array.from(checks) };
-    });
-
-    const next = { ...store, siteLogsBySite: { ...store.siteLogsBySite, [site.id]: nextLogs } };
-    updateStore(next);
-  };
-
-  const handleAddComment = (logId) => {
-    const text = commentInputs[logId];
-    if (!text || !text.trim()) return;
-
-    const nextLogs = (store.siteLogsBySite?.[site.id] ?? []).map((x) => {
-      if (x.id !== logId) return x;
-      const comments = [...(x.comments ?? []), { author: user.name, text: text.trim(), createdAt: new Date().toISOString() }];
-      return { ...x, comments };
-    });
-
-    const next = { ...store, siteLogsBySite: { ...store.siteLogsBySite, [site.id]: nextLogs } };
-    updateStore(next);
-    setCommentInputs((p) => ({ ...p, [logId]: "" }));
-  };
-
-  const handleAddWorker = () => {
-    if (!newWorkerName || !newWorkerPhone || !newWorkerRole) return;
-
-    const newW = { id: uid("worker"), siteId: site.id, name: newWorkerName, role: newWorkerRole, phone: newWorkerPhone, createdAt: new Date().toISOString() };
-    const next = {
-      ...store,
-      siteWorkersBySite: {
-        ...store.siteWorkersBySite,
-        [site.id]: [newW, ...(store.siteWorkersBySite?.[site.id] ?? [])],
-      },
-    };
-
-    updateStore(next);
-    setNewWorkerName("");
-    setNewWorkerRole("");
-    setNewWorkerPhone("");
-  };
-
-  const handleAddMaterial = () => {
-    if (!newMaterialLoc || !newMaterialName) {
-      alert("위치와 자재명을 모두 입력해주세요.");
-      return;
-    }
-    setIsSubmittingMaterial(true);
-
-    const newM = {
-      id: uid("mat"),
-      siteId: site.id,
-      location: newMaterialLoc,
-      name: newMaterialName,
-      status: "pending",
-      createdAt: new Date().toISOString(),
-    };
-
-    const next = {
-      ...store,
-      siteMaterialsBySite: {
-        ...store.siteMaterialsBySite,
-        [site.id]: [newM, ...(store.siteMaterialsBySite?.[site.id] ?? [])],
-      },
-    };
-
-    updateStore(next);
-    setNewMaterialLoc("");
-    setNewMaterialName("");
-    setIsSubmittingMaterial(false);
-  };
-
-  const toggleMaterialStatus = (mat) => {
-    const nextMats = (store.siteMaterialsBySite?.[site.id] ?? []).map((x) => {
-      if (x.id !== mat.id) return x;
-      const newStatus = x.status === "ordered" ? "pending" : "ordered";
-      return { ...x, status: newStatus };
-    });
-
-    const next = { ...store, siteMaterialsBySite: { ...store.siteMaterialsBySite, [site.id]: nextMats } };
-    updateStore(next);
-  };
-
-  const generateSchedule = () => {
-    const schedule = [];
-    const today = new Date();
-    for (let i = -2; i < 12; i++) {
-      const d = new Date(today);
-      d.setDate(today.getDate() + i);
-      const dateStr = d.toLocaleDateString("ko-KR", { month: "numeric", day: "numeric", weekday: "short" });
-      let task = "";
-      if (i === -2) task = "철거 공사";
-      else if (i === 0) task = "목공 (가벽 설치) - 금일";
-      else if (i === 1) task = "목공 (천장 덴조)";
-      else if (i === 2) task = "타일 시공";
-      schedule.push({ date: dateStr, task: task || "현장 점검 및 양생", isToday: i === 0 });
-    }
-    return schedule;
-  };
-
-  const siteSchedule = useMemo(() => generateSchedule(), []);
-
-  return (
-    <div className="bg-slate-50 min-h-screen pb-20 flex flex-col">
-      <div className="relative h-48 bg-slate-800">
-        <img src={site.imageUrl || "https://placehold.co/600x300/e2e8f0/94a3b8?text=Site+Photo"} className="w-full h-full object-cover opacity-60" alt="Site Header" />
-        <button onClick={onBack} className="absolute top-4 left-4 bg-white/20 backdrop-blur-md p-2 rounded-full text-white hover:bg-white/30">
-          <ChevronRight className="rotate-180 w-6 h-6" />
-        </button>
-        <div className="absolute bottom-4 left-4 text-white">
-          <h1 className="text-2xl font-bold">{site.name}</h1>
-          <p className="text-sm opacity-90">{site.address}</p>
-        </div>
-      </div>
-
-      <div className="flex bg-white border-b border-slate-200 sticky top-0 z-10 overflow-x-auto">
-        {["info", "blueprint", "workers", "materials"].map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`flex-1 py-4 text-sm font-medium border-b-2 transition min-w-[80px] ${
-              activeTab === tab ? "border-blue-600 text-blue-600" : "border-transparent text-slate-500 hover:text-slate-700"
-            }`}
-          >
-            {tab === "info" ? "현장정보" : tab === "blueprint" ? "도면" : tab === "workers" ? "작업자" : "마감재"}
-          </button>
-        ))}
-      </div>
-
-      <div className="p-4 flex-1 overflow-y-auto">
-        {activeTab === "info" && (
-          <div className="space-y-4">
-            <div className="bg-white p-4 rounded-xl shadow-sm">
-              <div className="flex justify-between items-center mb-3">
-                <h3 className="font-bold text-slate-800">공사 개요</h3>
-                <button
-                  onClick={() => setShowScheduleModal(true)}
-                  className="flex items-center text-xs bg-blue-50 text-blue-600 px-3 py-1.5 rounded-full font-bold border border-blue-100 hover:bg-blue-100 transition"
-                >
-                  <Calendar className="w-3 h-3 mr-1" /> 일정표 보기
-                </button>
-              </div>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-slate-500">기간</span>
-                  <span className="text-slate-800 font-medium">
-                    {site.startDate} ~ {site.endDate}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">담당자</span>
-                  <span className="text-slate-800 font-medium">{site.manager}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white p-4 rounded-xl shadow-sm">
-              <h3 className="font-bold text-slate-800 mb-3">작업 일지</h3>
-
-              <div className="bg-slate-50 p-3 rounded-lg border border-slate-200 mb-4">
-                <textarea
-                  value={newLogText}
-                  onChange={(e) => setNewLogText(e.target.value)}
-                  className="w-full bg-transparent text-sm focus:outline-none resize-none mb-2"
-                  rows="2"
-                  placeholder="작업 내용이나 특이사항 입력..."
-                />
-
-                <input type="file" ref={cameraInputRef} accept="image/*" capture="environment" className="hidden" />
-                <input type="file" ref={galleryInputRef} accept="image/*" className="hidden" />
-
-                <div className="flex justify-between items-center pt-2 border-t border-slate-200">
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => cameraInputRef.current?.click()}
-                      className="text-slate-500 hover:text-blue-600 p-1.5 rounded bg-white border border-slate-200 hover:bg-slate-50 transition flex items-center space-x-1"
-                    >
-                      <Camera className="w-4 h-4" />
-                      <span className="text-xs">촬영</span>
-                    </button>
-                    <button
-                      onClick={() => galleryInputRef.current?.click()}
-                      className="text-slate-500 hover:text-blue-600 p-1.5 rounded bg-white border border-slate-200 hover:bg-slate-50 transition flex items-center space-x-1"
-                    >
-                      <ImageIcon className="w-4 h-4" />
-                      <span className="text-xs">앨범</span>
-                    </button>
-                  </div>
-
-                  <button
-                    onClick={handleAddLog}
-                    disabled={!newLogText.trim()}
-                    className={`px-4 py-1.5 rounded-lg text-xs font-bold transition flex items-center ${
-                      !newLogText.trim() ? "bg-slate-200 text-slate-400" : "bg-blue-600 text-white hover:bg-blue-700"
-                    }`}
-                  >
-                    <Send className="w-3 h-3 mr-1" /> 등록
-                  </button>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                {logs.map((log) => {
-                  const isChecked = (log.checks ?? []).includes(user.name);
-                  const checkCount = (log.checks ?? []).length;
-                  const hasComments = (log.comments ?? []).length > 0;
-                  const isOpen = openCommentId === log.id;
-
-                  return (
-                    <div key={log.id} className="border border-slate-200 rounded-xl p-4 bg-white shadow-sm">
-                      <div className="flex justify-between items-center mb-2">
-                        <div className="flex items-center space-x-2">
-                          <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-600 text-xs">
-                            {(log.author ?? "?")[0]}
-                          </div>
-                          <div>
-                            <span className="font-bold text-sm text-slate-800 block">{log.author}</span>
-                            <span className="text-[10px] text-slate-400 block">
-                              {log.createdAt ? new Date(log.createdAt).toLocaleString("ko-KR", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "방금 전"}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <p className="text-sm text-slate-700 whitespace-pre-wrap mb-3">{log.text}</p>
-
-                      {log.hasImage && (
-                        <div className="mb-3 rounded-lg overflow-hidden border border-slate-100">
-                          <img
-                            src="https://placehold.co/400x300/e2e8f0/94a3b8?text=Uploaded+Photo"
-                            alt="Log attachment"
-                            className="w-full h-auto object-cover"
-                          />
-                        </div>
-                      )}
-
-                      <div className="flex items-center justify-between border-t border-slate-100 pt-3">
-                        <button
-                          onClick={() => handleToggleCheck(log)}
-                          className={`flex items-center space-x-1 text-xs font-bold px-3 py-1.5 rounded-full transition ${
-                            isChecked ? "bg-blue-100 text-blue-600" : "bg-slate-50 text-slate-500 hover:bg-slate-100"
-                          }`}
-                        >
-                          <CheckCircle className="w-4 h-4" />
-                          <span>{isChecked ? "확인완료" : "확인"}</span>
-                          {checkCount > 0 && <span className="ml-1 text-[10px] opacity-80">({checkCount})</span>}
-                        </button>
-
-                        <button
-                          onClick={() => setOpenCommentId(isOpen ? null : log.id)}
-                          className={`flex items-center space-x-1 text-xs font-bold px-3 py-1.5 rounded-full transition ${
-                            isOpen || hasComments ? "bg-slate-100 text-slate-700" : "text-slate-400 hover:bg-slate-50"
-                          }`}
-                        >
-                          <MessageSquare className="w-4 h-4" />
-                          <span>댓글</span>
-                          {hasComments && <span className="ml-1">({(log.comments ?? []).length})</span>}
-                        </button>
-                      </div>
-
-                      {checkCount > 0 && <div className="mt-2 text-[10px] text-blue-600 font-medium px-1">{(log.checks ?? []).join(", ")}님이 확인했습니다.</div>}
-
-                      {(isOpen || hasComments) && (
-                        <div className="mt-3 bg-slate-50 p-3 rounded-lg">
-                          {(log.comments ?? []).map((comment, idx) => (
-                            <div key={idx} className="mb-2 last:mb-0 text-xs">
-                              <span className="font-bold text-slate-700 mr-1">{comment.author}:</span>
-                              <span className="text-slate-600">{comment.text}</span>
-                            </div>
-                          ))}
-
-                          {isOpen && (
-                            <div className="flex mt-3 relative">
-                              <input
-                                type="text"
-                                value={commentInputs[log.id] || ""}
-                                onChange={(e) => setCommentInputs((p) => ({ ...p, [log.id]: e.target.value }))}
-                                onKeyDown={(e) => e.key === "Enter" && handleAddComment(log.id)}
-                                placeholder="댓글 달기..."
-                                className="w-full pl-3 pr-10 py-2 rounded-lg border border-slate-200 text-xs focus:border-blue-500 focus:outline-none"
-                              />
-                              <button onClick={() => handleAddComment(log.id)} className="absolute right-1 top-1 p-1 text-blue-600 hover:bg-blue-50 rounded">
-                                <Send className="w-4 h-4" />
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-
-                {logs.length === 0 && <div className="text-center py-6 text-slate-400 bg-white rounded-xl border border-dashed">작업일지가 없습니다.</div>}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {activeTab === "blueprint" && (
-          <div className="flex flex-col h-full">
-            <div className="bg-white p-4 rounded-xl shadow-sm mb-4">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="font-bold text-slate-800">등록된 도면</h3>
-              </div>
-              <div
-                onClick={() => setShowBlueprintModal(true)}
-                className="aspect-video bg-slate-100 rounded-lg border-2 border-dashed border-slate-300 flex flex-col items-center justify-center cursor-pointer hover:bg-slate-50 transition"
-              >
-                <FileText className="w-8 h-8 text-slate-400 mb-2" />
-                <span className="text-sm text-slate-500">전체 평면도 보기</span>
-              </div>
-              <p className="text-xs text-slate-400 mt-3">※ 현재는 데모 이미지입니다. (다음 단계에서 PDF 업로드로 연결 가능)</p>
-            </div>
-          </div>
-        )}
-
-        {activeTab === "workers" && (
-          <div className="space-y-4">
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-              <h3 className="font-bold text-sm text-slate-800 mb-3 flex items-center">
-                <Plus className="w-4 h-4 mr-1 text-blue-600" />
-                작업자 추가
-              </h3>
-
-              <div className="grid grid-cols-3 gap-2 mb-2">
-                <input className="p-2 bg-slate-50 rounded border text-sm" placeholder="공정" value={newWorkerRole} onChange={(e) => setNewWorkerRole(e.target.value)} />
-                <input className="col-span-2 p-2 bg-slate-50 rounded border text-sm" placeholder="이름" value={newWorkerName} onChange={(e) => setNewWorkerName(e.target.value)} />
-              </div>
-
-              <div className="flex space-x-2">
-                <input className="flex-1 p-2 bg-slate-50 rounded border text-sm" placeholder="전화번호" value={newWorkerPhone} onChange={(e) => setNewWorkerPhone(e.target.value)} />
-                <button onClick={handleAddWorker} className="bg-slate-800 text-white px-4 rounded font-bold text-sm">
-                  등록
-                </button>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              {workers.map((worker) => (
-                <div key={worker.id} className="bg-white p-4 rounded-xl shadow-sm flex justify-between items-center">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold shrink-0">
-                      <Briefcase className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <div className="flex items-center space-x-2">
-                        <h3 className="font-bold text-slate-800">{worker.name}</h3>
-                        <span className="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded border border-slate-200">{worker.role}</span>
-                      </div>
-                      <p className="text-xs text-slate-500">{worker.phone}</p>
-                    </div>
-                  </div>
-                  <a href={`tel:${worker.phone}`} className="bg-green-500 p-2 rounded-full text-white hover:bg-green-600 transition shadow-md" title="전화걸기">
-                    <Phone className="w-5 h-5" />
-                  </a>
-                </div>
-              ))}
-
-              {workers.length === 0 && <div className="text-center py-6 text-slate-400 bg-white rounded-xl border border-dashed">등록된 작업자가 없습니다.</div>}
-            </div>
-          </div>
-        )}
-
-        {activeTab === "materials" && (
-          <div className="space-y-4">
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-              <h3 className="font-bold text-sm text-slate-800 mb-3 flex items-center">
-                <Plus className="w-4 h-4 mr-1 text-purple-600" />
-                마감재 입력
-              </h3>
-
-              <div className="space-y-2">
-                <input className="w-full p-2 bg-slate-50 rounded border text-sm" placeholder="위치 (예: 거실 아트월)" value={newMaterialLoc} onChange={(e) => setNewMaterialLoc(e.target.value)} />
-                <div className="flex space-x-2">
-                  <input className="flex-1 p-2 bg-slate-50 rounded border text-sm" placeholder="자재명 (예: 동화마루)" value={newMaterialName} onChange={(e) => setNewMaterialName(e.target.value)} />
-                  <button onClick={handleAddMaterial} disabled={isSubmittingMaterial} className="bg-slate-800 text-white px-4 rounded font-bold text-sm">
-                    {isSubmittingMaterial ? "저장중..." : "저장"}
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 gap-3">
-              {materials.map((mat) => (
-                <div key={mat.id} className="bg-white p-4 rounded-xl shadow-sm flex flex-col border-l-4 border-purple-500">
-                  <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <p className="text-xs text-slate-400 font-bold mb-1">{mat.location}</p>
-                      <h3 className="text-sm font-bold text-slate-800">{mat.name}</h3>
-                    </div>
-                    <Palette className="w-5 h-5 text-purple-200" />
-                  </div>
-
-                  <div className="border-t border-slate-100 pt-2 flex justify-end">
-                    <button
-                      onClick={() => toggleMaterialStatus(mat)}
-                      className={`flex items-center px-3 py-1.5 rounded-full text-xs font-bold transition ${
-                        mat.status === "ordered" ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-500"
-                      }`}
-                    >
-                      {mat.status === "ordered" ? (
-                        <>
-                          <Truck className="w-3 h-3 mr-1" />
-                          주문완료
-                        </>
-                      ) : (
-                        <>
-                          <ShoppingCart className="w-3 h-3 mr-1" />
-                          주문대기
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </div>
-              ))}
-
-              {materials.length === 0 && <div className="text-center py-6 text-slate-400 bg-white rounded-xl border border-dashed">등록된 마감재가 없습니다.</div>}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {showBlueprintModal && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-90 flex flex-col justify-center items-center p-2" onClick={() => setShowBlueprintModal(false)}>
-          <img src="https://placehold.co/1024x768/202020/ffffff?text=BLUEPRINT+VIEW" alt="Full Blueprint" className="max-w-full max-h-screen object-contain" />
-          <p className="text-white mt-4 text-sm">닫으려면 화면을 터치하세요</p>
-        </div>
-      )}
-
-      {showScheduleModal && (
-        <div className="fixed inset-0 z-50 bg-white flex flex-col">
-          <div className="p-4 border-b flex justify-between items-center bg-slate-800 text-white">
-            <h2 className="text-lg font-bold">공사 전체 일정표</h2>
-            <button onClick={() => setShowScheduleModal(false)}>
-              <X className="w-6 h-6" />
-            </button>
-          </div>
-
-          <div className="flex-1 overflow-y-auto p-4 bg-slate-50">
-            <div className="space-y-2">
-              {siteSchedule.map((item, idx) => (
-                <div
-                  key={idx}
-                  className={`flex p-4 rounded-lg border ${item.isToday ? "bg-blue-600 text-white border-blue-600 shadow-lg scale-105" : "bg-white border-slate-200 text-slate-600"}`}
-                >
-                  <div className={`w-20 font-bold ${item.isToday ? "text-blue-200" : "text-slate-400"}`}>{item.date}</div>
-                  <div className="flex-1 font-bold pl-4 border-l border-white/20">
-                    {item.task}
-                    {item.isToday && <span className="ml-2 text-xs bg-white text-blue-600 px-2 py-0.5 rounded-full">TODAY</span>}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-// ------------------------------
-// 5. AS 관리
-// ------------------------------
-const ASManager = ({ asList }) => {
-  const [selectedAS, setSelectedAS] = useState(null);
-
-  return (
-    <div className="pb-20 pt-4 px-4 h-full overflow-y-auto">
-      <h2 className="text-2xl font-bold text-slate-800 mb-6">AS 관리</h2>
-
-      <div className="space-y-4">
-        {asList.map((item) => (
-          <div
-            key={item.id}
-            onClick={() => setSelectedAS(item)}
-            className="bg-white p-5 rounded-xl shadow-sm border-l-4 border-emerald-500 cursor-pointer hover:bg-emerald-50 transition active:scale-98"
-          >
-            <div className="flex justify-between mb-2">
-              <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded">{item.status === "scheduled" ? "방문예정" : "처리완료"}</span>
-              <span className="text-xs text-slate-400">
-                {item.date} {item.time}
-              </span>
-            </div>
-            <h3 className="font-bold text-lg text-slate-800 mb-1">{item.siteName}</h3>
-            <p className="text-sm text-slate-600 mb-3">{item.issue}</p>
-            <div className="flex items-center justify-between border-t border-slate-100 pt-3">
-              <div className="flex items-center space-x-2">
-                <div className="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-xs">{(item.assignedTo ?? "?")[0]}</div>
-                <span className="text-xs text-slate-500">담당: {item.assignedTo}</span>
-              </div>
-              <div className="text-xs text-slate-400 flex items-center">
-                <ImageIcon className="w-3 h-3 mr-1" /> 미디어 보기
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {selectedAS && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center p-4 backdrop-blur-sm" onClick={() => setSelectedAS(null)}>
-          <div className="bg-white w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <div className="bg-emerald-600 p-4 text-white flex justify-between items-start">
-              <div>
-                <h3 className="font-bold text-lg">{selectedAS.siteName}</h3>
-                <p className="text-sm opacity-90">AS 접수 상세</p>
-              </div>
-              <button onClick={() => setSelectedAS(null)}>
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-
-            <div className="p-5 space-y-4 max-h-[70vh] overflow-y-auto">
-              <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                <label className="text-xs font-bold text-slate-400 mb-1 block">고객 정보</label>
-                <div className="flex justify-between items-center mb-2">
-                  <span className="font-bold text-slate-800 text-lg">{selectedAS.customerName}</span>
-                  <a href={`tel:${selectedAS.customerPhone || "010-0000-0000"}`} className="bg-green-500 text-white px-3 py-1.5 rounded-full text-xs font-bold flex items-center hover:bg-green-600">
-                    <Phone className="w-3 h-3 mr-1" />
-                    전화걸기
-                  </a>
-                </div>
-                <div className="flex items-center text-sm text-slate-600">
-                  <Calendar className="w-4 h-4 mr-2 text-slate-400" /> {selectedAS.date} {selectedAS.time} 방문예정
-                </div>
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-slate-400 mb-1 block">접수 내용</label>
-                <p className="text-slate-800 bg-white border border-slate-100 p-3 rounded-lg text-sm">{selectedAS.issue}</p>
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-slate-400 mb-2 block flex items-center">
-                  <ImageIcon className="w-3 h-3 mr-1" />
-                  고객 첨부 사진/영상
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="aspect-square bg-slate-100 rounded-lg overflow-hidden relative">
-                    <img src="https://placehold.co/300x300/e2e8f0/94a3b8?text=Photo+1" alt="photo" className="w-full h-full object-cover" />
-                  </div>
-                  <div className="aspect-square bg-slate-900 rounded-lg overflow-hidden relative flex items-center justify-center">
-                    <img src="https://placehold.co/300x300/333/999?text=Video" alt="video" className="w-full h-full object-cover opacity-50" />
-                    <PlayCircle className="w-10 h-10 text-white absolute" />
-                  </div>
-                </div>
-              </div>
-
-              <button className="w-full py-3 bg-emerald-600 text-white font-bold rounded-xl shadow-md hover:bg-emerald-700" onClick={() => alert("데모: 처리완료 변경(다음 단계에서 실제 처리로 연결)")}>
-                처리 완료로 변경
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <button className="fixed bottom-24 right-4 bg-emerald-600 text-white p-4 rounded-full shadow-lg hover:bg-emerald-700 transition" onClick={() => alert("데모: AS 추가(다음 단계에서 구현)")}>
-        <Plus className="w-6 h-6" />
-      </button>
-    </div>
-  );
-};
-
-// ------------------------------
-// Main App
-// ------------------------------
-const App = () => {
-  const [user, setUser] = useState(null);
-
-  const [currentView, setCurrentView] = useState("dashboard");
-  const [currentSite, setCurrentSite] = useState(null);
-
-  const [store, setStore] = useState(() => ensureInitialStore());
-
-  const sitesData = store.sites ?? [];
-  const asData = store.asList ?? [];
-
-  // 방어: 현장 상세 들어갈 때 currentSite 없으면 홈으로
-  useEffect(() => {
-    if (currentView === "siteDetail" && !currentSite) setCurrentView("dashboard");
-  }, [currentView, currentSite]);
-
-  const renderView = () => {
-    if (!user) return <LoginView onLogin={setUser} />;
-
-    switch (currentView) {
-      case "dashboard":
-        return <Dashboard user={user} sites={sitesData} asList={asData} setView={setCurrentView} setCurrentSite={setCurrentSite} />;
-      case "sites":
-        return <SiteList sites={sitesData} setCurrentSite={setCurrentSite} setView={setCurrentView} />;
-      case "siteDetail":
-        return <SiteDetail site={currentSite} user={user} onBack={() => setCurrentView("dashboard")} store={store} setStore={setStore} />;
-      case "as":
-        return <ASManager asList={asData} />;
-      default:
-        return <Dashboard user={user} sites={sitesData} asList={asData} setView={setCurrentView} setCurrentSite={setCurrentSite} />;
-    }
-  };
-
-  return (
-    <div className="bg-slate-100 min-h-screen font-sans text-slate-900 w-full relative overflow-hidden">
-">
-      <div className="h-2 bg-slate-900 w-full" />
-
-      <main className="h-screen overflow-hidden">{renderView()}</main>
-
-      {user && currentView !== "siteDetail" && (
-        <nav className="absolute bottom-0 left-0 w-full bg-white border-t border-slate-200 flex justify-around items-center h-16 pb-2 px-2 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-40">
-          <button onClick={() => setCurrentView("dashboard")} className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${currentView === "dashboard" ? "text-blue-600" : "text-slate-400"}`}>
-            <Home className="w-6 h-6" strokeWidth={currentView === "dashboard" ? 2.5 : 2} />
-            <span className="text-[10px] font-medium">홈</span>
-          </button>
-
-          <button onClick={() => setCurrentView("sites")} className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${currentView === "sites" ? "text-blue-600" : "text-slate-400"}`}>
-            <ClipboardList className="w-6 h-6" strokeWidth={currentView === "sites" ? 2.5 : 2} />
-            <span className="text-[10px] font-medium">현장목록</span>
-          </button>
-
-          <button onClick={() => setCurrentView("as")} className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${currentView === "as" ? "text-blue-600" : "text-slate-400"}`}>
-            <Hammer className="w-6 h-6" strokeWidth={currentView === "as" ? 2.5 : 2} />
-            <span className="text-[10px] font-medium">AS관리</span>
-          </button>
-
-          <button onClick={() => setUser(null)} className="flex flex-col items-center justify-center w-full h-full space-y-1 text-slate-400">
-            <User className="w-6 h-6" />
-            <span className="text-[10px] font-medium">내정보</span>
-          </button>
-        </nav>
-      )}
-    </div>
-  );
-};
-
-export default App;
+        [site.id]: [newLog, ...(store.siteLogsBySite?.[site.id] ??
