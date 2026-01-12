@@ -1121,7 +1121,8 @@ const App = () => {
   };
 
   return (
-    <div className="bg-slate-100 min-h-screen font-sans text-slate-900 max-w-md mx-auto shadow-2xl relative overflow-hidden">
+    <div className="<div className="bg-slate-100 min-h-screen font-sans text-slate-900 w-full relative overflow-hidden">
+">
       <div className="h-2 bg-slate-900 w-full" />
 
       <main className="h-screen overflow-hidden">{renderView()}</main>
