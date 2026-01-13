@@ -2,128 +2,92 @@
 @tailwind components;
 @tailwind utilities;
 
-/* =========================================================
-   931 PWA Mobile Base (Android/iOS 공통)
-   - Tailwind(rem) 기반 UI 전체 스케일 업 (모바일에서 작게 보이는 문제 완화)
-   - 과도한 확대/축소 유발 요소 최소화
-   - 스크롤/터치/안전영역/폰트 렌더링 최적화
-   ========================================================= */
-
+/* =========================
+   Kakao-ish Theme + Mobile UX
+   ========================= */
 :root {
-  /* 배경 기본색 (tailwind bg-slate-100과 맞춤) */
-  --app-bg: #f1f5f9;
-
-  /* Safe area (iOS/일부 기기) */
-  --safe-top: env(safe-area-inset-top, 0px);
-  --safe-right: env(safe-area-inset-right, 0px);
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
-  --safe-left: env(safe-area-inset-left, 0px);
-}
-
-/* ✅ 전체 UI “기본 크기”를 키우는 핵심
-   Tailwind는 rem 기반이라 html font-size를 올리면 앱 전체가 커집니다. */
-html {
-  height: 100%;
-  background: var(--app-bg);
+  color-scheme: light;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
-  font-size: 16px;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR",
+    "Apple SD Gothic Neo", "Malgun Gothic", Arial, "Helvetica Neue", sans-serif;
+
+  --kakao-yellow: #fee500;
+  --kakao-black: #111111;
+  --bg: #f6f7f9;
+  --card: #ffffff;
+  --muted: #667085;
+  --line: rgba(17, 17, 17, 0.08);
 }
 
-/* 작은 폰(대부분 Android)에서 조금 더 크게 */
-@media (max-width: 480px) {
-  html {
-    font-size: 17px;
-  }
+html, body, #root {
+  height: 100%;
+  width: 100%;
 }
-
-/* 매우 작은 화면이면 더 올려도 됨 (원하면 18px로 조정 가능) */
-/*
-@media (max-width: 360px) {
-  html { font-size: 18px; }
-}
-*/
 
 body {
   margin: 0;
-  height: 100%;
-  background: var(--app-bg);
+  background: var(--bg);
+  color: var(--kakao-black);
+  overflow-x: hidden;
 
-  /* 주소창/바운스 느낌 완화 */
-  overscroll-behavior: none;
-
-  /* 폰트 렌더링 */
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
-  /* 탭 하이라이트 제거 */
-  -webkit-tap-highlight-color: transparent;
-
-  /* 안전영역 패딩 */
-  padding-top: var(--safe-top);
-  padding-right: var(--safe-right);
-  padding-bottom: var(--safe-bottom);
-  padding-left: var(--safe-left);
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
 }
 
-/* React root가 화면을 꽉 채우도록 */
-#root {
-  height: 100%;
-  min-height: 100dvh;
-  background: var(--app-bg);
-}
+* { -webkit-tap-highlight-color: transparent; }
 
-/* 기본 요소들 터치/선택 최적화 */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
+input, textarea, select, button { font-size: 16px; }
+img { -webkit-user-drag: none; user-select: none; }
 
-/* 버튼/링크 터치 반응 개선 */
-button,
-a {
-  -webkit-tap-highlight-color: transparent;
-}
+@layer components {
+  .k-card {
+    @apply bg-white rounded-2xl shadow-sm border;
+    border-color: var(--line);
+  }
 
-/* 모바일에서 더 “앱”처럼: 더블탭 확대 같은 느낌 완화
-   (완전 차단은 브라우저 정책상 100% 보장 불가지만 체감이 좋아집니다) */
-button,
-a,
-[role="button"] {
-  touch-action: manipulation;
-}
+  .k-title {
+    @apply text-[20px] font-extrabold tracking-[-0.02em];
+    color: var(--kakao-black);
+  }
 
-/* 입력창: 모바일에서 글자가 작아 보여 확대되는 현상 완화(특히 iOS)
-   Android에도 무해합니다. */
-input,
-textarea,
-select {
-  font-size: 1rem; /* html font-size에 따라 커짐 */
-}
+  .k-subtitle {
+    @apply text-[13px];
+    color: var(--muted);
+  }
 
-/* 이미지 드래그 선택 같은 것 방지 */
-img {
-  -webkit-user-drag: none;
-  user-select: none;
-}
+  .k-input {
+    @apply w-full rounded-xl border px-4 py-3 outline-none bg-white;
+    border-color: var(--line);
+  }
+  .k-input:focus {
+    box-shadow: 0 0 0 3px rgba(254, 229, 0, 0.25);
+    border-color: rgba(17,17,17,0.2);
+  }
 
-/* 스크롤바(웹 느낌) 최소화: 필요하면 제거 */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-::-webkit-scrollbar-thumb {
-  background: rgba(15, 23, 42, 0.18);
-  border-radius: 999px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
+  .k-btn {
+    @apply w-full rounded-xl px-4 py-3 font-bold active:scale-[0.99] transition;
+  }
+  .k-btn-primary {
+    background: var(--kakao-yellow);
+    color: var(--kakao-black);
+  }
+  .k-btn-ghost {
+    @apply bg-white;
+    border: 1px solid var(--line);
+    color: var(--kakao-black);
+  }
 
-/* Tailwind가 없는 상황에서도 너무 작게 보이지 않게 기본 텍스트 스타일 */
-body {
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", "Apple SD Gothic Neo",
-    "Malgun Gothic", "Helvetica Neue", Arial, "Segoe UI Emoji", "Segoe UI Symbol";
-  line-height: 1.4;
+  .k-chip {
+    @apply inline-flex items-center gap-1 rounded-full px-3 py-1 text-[12px] font-bold;
+    border: 1px solid var(--line);
+    background: #fff;
+  }
+
+  .k-divider {
+    height: 1px;
+    background: var(--line);
+  }
 }
