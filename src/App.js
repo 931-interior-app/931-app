@@ -1094,46 +1094,57 @@ export default function App() {
   }, [user, view, currentSite, sites, asList, store]);
 
   return (
-    // ✅ 여기서 max-w-md / mx-auto 제거 = 모바일 화면 꽉 차게
-    <div className="bg-slate-100 min-h-[100dvh] font-sans text-slate-900 w-full relative overflow-hidden">
-      <div className="h-2 bg-slate-900 w-full" />
-      <main className="min-h-[calc(100dvh-8px)] overflow-hidden">{content}</main>
+  <div className="bg-slate-100 w-full min-h-[100dvh] font-sans text-slate-900 flex flex-col">
+    {/* 상태바 영역 */}
+    <div className="h-2 bg-slate-900 w-full shrink-0" />
 
-      {user && view !== "siteDetail" && (
-        <nav className="fixed bottom-0 left-0 w-full bg-white border-t border-slate-200 flex justify-around items-center h-16 pb-2 px-2 z-40">
-          <button
-            onClick={() => setView("dashboard")}
-            className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${view === "dashboard" ? "text-blue-600" : "text-slate-400"}`}
-          >
-            <Home className="w-6 h-6" strokeWidth={view === "dashboard" ? 2.5 : 2} />
-            <span className="text-[10px] font-medium">홈</span>
-          </button>
+    {/* 메인 콘텐츠 (여기만 스크롤) */}
+    <main className="flex-1 overflow-y-auto pb-20">
+      {content}
+    </main>
 
-          <button
-            onClick={() => setView("sites")}
-            className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${view === "sites" ? "text-blue-600" : "text-slate-400"}`}
-          >
-            <ClipboardList className="w-6 h-6" strokeWidth={view === "sites" ? 2.5 : 2} />
-            <span className="text-[10px] font-medium">현장목록</span>
-          </button>
+    {/* 하단 네비게이션 */}
+    {user && view !== "siteDetail" && (
+      <nav className="fixed bottom-0 left-0 w-full h-16 bg-white border-t border-slate-200 flex justify-around items-center px-2 z-40">
+        <button
+          onClick={() => setView("dashboard")}
+          className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${
+            view === "dashboard" ? "text-blue-600" : "text-slate-400"
+          }`}
+        >
+          <Home className="w-6 h-6" />
+          <span className="text-[10px] font-medium">홈</span>
+        </button>
 
-          <button
-            onClick={() => setView("as")}
-            className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${view === "as" ? "text-blue-600" : "text-slate-400"}`}
-          >
-            <Hammer className="w-6 h-6" strokeWidth={view === "as" ? 2.5 : 2} />
-            <span className="text-[10px] font-medium">AS관리</span>
-          </button>
+        <button
+          onClick={() => setView("sites")}
+          className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${
+            view === "sites" ? "text-blue-600" : "text-slate-400"
+          }`}
+        >
+          <ClipboardList className="w-6 h-6" />
+          <span className="text-[10px] font-medium">현장목록</span>
+        </button>
 
-          <button
-            onClick={() => setUser(null)}
-            className="flex flex-col items-center justify-center w-full h-full space-y-1 text-slate-400"
-          >
-            <User className="w-6 h-6" />
-            <span className="text-[10px] font-medium">로그아웃</span>
-          </button>
-        </nav>
-      )}
-    </div>
-  );
-}
+        <button
+          onClick={() => setView("as")}
+          className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${
+            view === "as" ? "text-blue-600" : "text-slate-400"
+          }`}
+        >
+          <Hammer className="w-6 h-6" />
+          <span className="text-[10px] font-medium">AS관리</span>
+        </button>
+
+        <button
+          onClick={() => setUser(null)}
+          className="flex flex-col items-center justify-center w-full h-full space-y-1 text-slate-400"
+        >
+          <User className="w-6 h-6" />
+          <span className="text-[10px] font-medium">로그아웃</span>
+        </button>
+      </nav>
+    )}
+  </div>
+);
+
