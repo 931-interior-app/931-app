@@ -2,43 +2,65 @@
 <html lang="ko">
   <head>
     <meta charset="utf-8" />
+    <meta name="color-scheme" content="light dark" />
 
-    <!-- 모바일 화면 꽉 차게 (왼쪽 쏠림 해결 핵심) -->
+    <!-- ✅ 모바일 화면 기준 (PWA 기본) -->
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
     />
 
-    <!-- 앱(PWA) 느낌 -->
+    <!-- ✅ PWA/앱 메타 -->
     <meta name="theme-color" content="#0f172a" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-title" content="931인테리어" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="mobile-web-app-capable" content="yes" />
-
+    <meta name="application-name" content="931인테리어" />
     <meta name="description" content="931인테리어 현장 · AS 관리 시스템" />
 
+    <!-- ✅ iOS PWA -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="931인테리어" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+
+    <!-- ✅ Android PWA -->
+    <meta name="mobile-web-app-capable" content="yes" />
+
+    <!-- ✅ Icons / Manifest -->
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
 
     <title>931인테리어</title>
 
+    <!-- ✅ 기본 레이아웃 리셋: 좌측쏠림/가로스크롤 방지 -->
     <style>
-      html, body {
+      html,
+      body {
+        width: 100%;
+        height: 100%;
         margin: 0;
         padding: 0;
-        height: 100%;
+        overflow-x: hidden;
         background: #f1f5f9;
+        -webkit-text-size-adjust: 100%;
       }
+
+      #root {
+        width: 100%;
+        min-height: 100dvh;
+      }
+
       * {
         -webkit-tap-highlight-color: transparent;
       }
-      body {
-        padding-top: env(safe-area-inset-top);
-        padding-bottom: env(safe-area-inset-bottom);
-        padding-left: env(safe-area-inset-left);
-        padding-right: env(safe-area-inset-right);
+
+      /* iOS에서 input 확대 방지(16px 미만이면 확대됨) */
+      input,
+      textarea,
+      select,
+      button {
+        font-size: 16px;
       }
     </style>
   </head>
