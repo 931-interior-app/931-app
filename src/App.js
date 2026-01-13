@@ -28,6 +28,7 @@ import {
  * ✅ Vercel 배포용(빌드 에러 없이) 단일 App.js
  * - Firebase 없이 localStorage로 저장
  * - 모바일 화면 전체 폭(w-full) + 100dvh
+ * - main만 스크롤(앱처럼), 하단 nav 고정
  */
 
 const LS_KEY = "931_APP_DATA_V1";
@@ -389,7 +390,6 @@ function Dashboard({ user, sites, asList, setView, setCurrentSite }) {
 // ------------------------------
 function SiteList({ sites, setCurrentSite, setView }) {
   const [filter, setFilter] = useState("all");
-
   const filteredSites = sites.filter((s) => (filter === "all" ? true : s.status === filter));
 
   return (
@@ -461,7 +461,7 @@ function SiteList({ sites, setCurrentSite, setView }) {
 }
 
 // ------------------------------
-// Site detail (logs/workers/materials)
+// Site detail
 // ------------------------------
 function SiteDetail({ site, user, onBack, store, setStore }) {
   const [activeTab, setActiveTab] = useState("info");
@@ -544,7 +544,10 @@ function SiteDetail({ site, user, onBack, store, setStore }) {
     const prevLogs = store.siteLogsBySite?.[site.id] ?? [];
     const nextLogs = prevLogs.map((l) => {
       if (l.id !== logId) return l;
-      const nextComments = [...(l.comments ?? []), { id: uid("c"), author: user.name, text, createdAt: new Date().toISOString() }];
+      const nextComments = [
+        ...(l.comments ?? []),
+        { id: uid("c"), author: user.name, text, createdAt: new Date().toISOString() },
+      ];
       return { ...l, comments: nextComments };
     });
 
@@ -592,7 +595,9 @@ function SiteDetail({ site, user, onBack, store, setStore }) {
 
   const toggleMaterial = (matId) => {
     const prev = store.siteMaterialsBySite?.[site.id] ?? [];
-    const nextMats = prev.map((m) => (m.id === matId ? { ...m, status: m.status === "ordered" ? "pending" : "ordered" } : m));
+    const nextMats = prev.map((m) =>
+      m.id === matId ? { ...m, status: m.status === "ordered" ? "pending" : "ordered" } : m
+    );
     const next = { ...store, siteMaterialsBySite: { ...store.siteMaterialsBySite, [site.id]: nextMats } };
     updateStore(next);
   };
@@ -881,10 +886,7 @@ function SiteDetail({ site, user, onBack, store, setStore }) {
                       <p className="text-xs text-slate-500">{w.phone}</p>
                     </div>
                   </div>
-                  <a
-                    href={`tel:${w.phone}`}
-                    className="bg-green-500 p-2 rounded-full text-white hover:bg-green-600 transition shadow-md"
-                  >
+                  <a href={`tel:${w.phone}`} className="bg-green-500 p-2 rounded-full text-white hover:bg-green-600 transition shadow-md">
                     <Phone className="w-5 h-5" />
                   </a>
                 </div>
@@ -959,10 +961,7 @@ function SiteDetail({ site, user, onBack, store, setStore }) {
       </div>
 
       {showBlueprintModal && (
-        <div
-          className="fixed inset-0 z-50 bg-black bg-opacity-90 flex flex-col justify-center items-center p-2"
-          onClick={() => setShowBlueprintModal(false)}
-        >
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-90 flex flex-col justify-center items-center p-2" onClick={() => setShowBlueprintModal(false)}>
           <img
             src="https://placehold.co/1024x768/202020/ffffff?text=BLUEPRINT+VIEW"
             alt="blueprint"
@@ -1018,10 +1017,7 @@ function ASManager({ asList }) {
       </div>
 
       {selected && (
-        <div
-          className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center p-4"
-          onClick={() => setSelected(null)}
-        >
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center p-4" onClick={() => setSelected(null)}>
           <div className="bg-white w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="bg-emerald-600 p-4 text-white flex justify-between items-start">
               <div>
@@ -1084,7 +1080,8 @@ export default function App() {
   const content = useMemo(() => {
     if (!user) return <LoginView onLogin={setUser} />;
 
-    if (view === "dashboard") return <Dashboard user={user} sites={sites} asList={asList} setView={setView} setCurrentSite={setCurrentSite} />;
+    if (view === "dashboard")
+      return <Dashboard user={user} sites={sites} asList={asList} setView={setView} setCurrentSite={setCurrentSite} />;
     if (view === "sites") return <SiteList sites={sites} setCurrentSite={setCurrentSite} setView={setView} />;
     if (view === "siteDetail" && currentSite)
       return <SiteDetail site={currentSite} user={user} onBack={() => setView("dashboard")} store={store} setStore={setStore} />;
@@ -1094,57 +1091,55 @@ export default function App() {
   }, [user, view, currentSite, sites, asList, store]);
 
   return (
-  <div className="bg-slate-100 w-full min-h-[100dvh] font-sans text-slate-900 flex flex-col">
-    {/* 상태바 영역 */}
-    <div className="h-2 bg-slate-900 w-full shrink-0" />
+    <div className="bg-slate-100 w-full min-h-[100dvh] font-sans text-slate-900 flex flex-col">
+      {/* 상태바 영역 */}
+      <div className="h-2 bg-slate-900 w-full shrink-0" />
 
-    {/* 메인 콘텐츠 (여기만 스크롤) */}
-    <main className="flex-1 overflow-y-auto pb-20">
-      {content}
-    </main>
+      {/* 메인 콘텐츠(여기만 스크롤) */}
+      <main className="flex-1 overflow-y-auto pb-20">{content}</main>
 
-    {/* 하단 네비게이션 */}
-    {user && view !== "siteDetail" && (
-      <nav className="fixed bottom-0 left-0 w-full h-16 bg-white border-t border-slate-200 flex justify-around items-center px-2 z-40">
-        <button
-          onClick={() => setView("dashboard")}
-          className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${
-            view === "dashboard" ? "text-blue-600" : "text-slate-400"
-          }`}
-        >
-          <Home className="w-6 h-6" />
-          <span className="text-[10px] font-medium">홈</span>
-        </button>
+      {/* 하단 네비게이션 */}
+      {user && view !== "siteDetail" && (
+        <nav className="fixed bottom-0 left-0 w-full h-16 bg-white border-t border-slate-200 flex justify-around items-center px-2 z-40">
+          <button
+            onClick={() => setView("dashboard")}
+            className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${
+              view === "dashboard" ? "text-blue-600" : "text-slate-400"
+            }`}
+          >
+            <Home className="w-6 h-6" />
+            <span className="text-[10px] font-medium">홈</span>
+          </button>
 
-        <button
-          onClick={() => setView("sites")}
-          className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${
-            view === "sites" ? "text-blue-600" : "text-slate-400"
-          }`}
-        >
-          <ClipboardList className="w-6 h-6" />
-          <span className="text-[10px] font-medium">현장목록</span>
-        </button>
+          <button
+            onClick={() => setView("sites")}
+            className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${
+              view === "sites" ? "text-blue-600" : "text-slate-400"
+            }`}
+          >
+            <ClipboardList className="w-6 h-6" />
+            <span className="text-[10px] font-medium">현장목록</span>
+          </button>
 
-        <button
-          onClick={() => setView("as")}
-          className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${
-            view === "as" ? "text-blue-600" : "text-slate-400"
-          }`}
-        >
-          <Hammer className="w-6 h-6" />
-          <span className="text-[10px] font-medium">AS관리</span>
-        </button>
+          <button
+            onClick={() => setView("as")}
+            className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${
+              view === "as" ? "text-blue-600" : "text-slate-400"
+            }`}
+          >
+            <Hammer className="w-6 h-6" />
+            <span className="text-[10px] font-medium">AS관리</span>
+          </button>
 
-        <button
-          onClick={() => setUser(null)}
-          className="flex flex-col items-center justify-center w-full h-full space-y-1 text-slate-400"
-        >
-          <User className="w-6 h-6" />
-          <span className="text-[10px] font-medium">로그아웃</span>
-        </button>
-      </nav>
-    )}
-  </div>
-);
-
+          <button
+            onClick={() => setUser(null)}
+            className="flex flex-col items-center justify-center w-full h-full space-y-1 text-slate-400"
+          >
+            <User className="w-6 h-6" />
+            <span className="text-[10px] font-medium">로그아웃</span>
+          </button>
+        </nav>
+      )}
+    </div>
+  );
+}
