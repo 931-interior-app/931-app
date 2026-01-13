@@ -2,8 +2,91 @@
 @tailwind components;
 @tailwind utilities;
 
-html, body, #root {
+/* =========================
+   931 PWA 기본 리셋 + 모바일 최적화
+   ========================= */
+
+/* iOS/Android 공통: 기본 여백 제거 + 100% 높이 */
+html,
+body,
+#root {
   height: 100%;
-  width: 100%;
   margin: 0;
+  padding: 0;
+}
+
+/* 배경/폰트 기본값 */
+body {
+  background: #f1f5f9; /* slate-100 */
+  color: #0f172a;      /* slate-900 */
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
+    "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* 터치 하이라이트 제거 (앱 느낌) */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 기본적으로 선택 방지(앱 느낌) */
+* {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* 입력창/텍스트영역은 선택 가능하게 예외 */
+input,
+textarea {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+/* 모바일에서 이상한 확대/하이라이트 방지 */
+input,
+textarea,
+button,
+a {
+  -webkit-touch-callout: none;
+}
+
+/* 버튼/인풋 기본 스타일 통일 */
+button {
+  border: 0;
+  background: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+}
+
+/* 이미지 드래그 방지 */
+img {
+  -webkit-user-drag: none;
+  user-drag: none;
+}
+
+/* 스크롤 부드럽게 + 주소창/탭바 변화에 안정 */
+html {
+  scroll-behavior: smooth;
+}
+
+/* iOS에서 스크롤 튕김(탄성) 느낌 완화 */
+body {
+  overscroll-behavior: none;
+}
+
+/* iOS에서 input focus 시 확대되는 현상 방지(폰트 최소 16px) */
+input,
+textarea {
+  font-size: 16px;
+}
+
+/* 안전영역(노치) 대응: 필요 시 사용할 수 있게 변수 */
+:root {
+  --safe-top: env(safe-area-inset-top);
+  --safe-bottom: env(safe-area-inset-bottom);
+  --safe-left: env(safe-area-inset-left);
+  --safe-right: env(safe-area-inset-right);
 }
